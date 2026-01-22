@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
 import { useStore } from '../store';
-import { Settings, Save, AlertCircle, ArrowLeftRight } from 'lucide-react';
+import { Settings, Save, AlertCircle, ArrowLeftRight, TrendingUp, Power } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const UserDomains: React.FC = () => {
-  const { currentUser, subdomains, updateSubdomainIP } = useStore();
+  const { currentUser, subdomains, updateSubdomainIP, toggleAutoRenew } = useStore();
   const userSubs = subdomains.filter(s => s.userId === currentUser?.id);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [tempIP, setTempIP] = useState('');
@@ -40,9 +40,9 @@ const UserDomains: React.FC = () => {
             <thead>
               <tr className="text-slate-500 text-xs uppercase tracking-wider">
                 <th className="px-6 py-4 font-semibold">Full Domain</th>
-                <th className="px-6 py-4 font-semibold">Registration/Expiry</th>
-                <th className="px-6 py-4 font-semibold">Hosting IP (A Record)</th>
-                <th className="px-6 py-4 font-semibold">Status</th>
+                <th className="px-6 py-4 font-semibold">Expiry Date</th>
+                <th className="px-6 py-4 font-semibold">IP Address</th>
+                <th className="px-6 py-4 font-semibold text-center">Auto-Renew</th>
                 <th className="px-6 py-4 font-semibold text-right">Actions</th>
               </tr>
             </thead>
@@ -51,8 +51,7 @@ const UserDomains: React.FC = () => {
                 <tr key={sub.id} className="hover:bg-white/5 transition-colors">
                   <td className="px-6 py-4 font-medium text-white">{sub.fullDomain}</td>
                   <td className="px-6 py-4">
-                    <div className="text-xs text-slate-400">Reg: {new Date(sub.registrationDate).toLocaleDateString()}</div>
-                    <div className="text-xs text-rose-400 font-medium">Exp: {new Date(sub.expiryDate).toLocaleDateString()}</div>
+                    <div className="text-xs text-rose-400 font-medium">{new Date(sub.expiryDate).toLocaleDateString()}</div>
                   </td>
                   <td className="px-6 py-4">
                     {editingId === sub.id ? (
@@ -66,15 +65,19 @@ const UserDomains: React.FC = () => {
                       <span className="text-slate-400 font-mono text-sm">{sub.ip}</span>
                     )}
                   </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-tight ${
-                      sub.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' :
-                      sub.status === 'suspended' ? 'bg-rose-500/10 text-rose-400' :
-                      sub.status === 'locked' ? 'bg-amber-500/10 text-amber-400' :
-                      'bg-slate-500/10 text-slate-400'
-                    }`}>
-                      {sub.status}
-                    </span>
+                  <td className="px-6 py-4 text-center">
+                    <button 
+                      onClick={() => toggleAutoRenew(sub.id)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                        sub.autoRenew ? 'bg-emerald-500' : 'bg-slate-700'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          sub.autoRenew ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-3">

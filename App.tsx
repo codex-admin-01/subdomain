@@ -13,6 +13,7 @@ import Invoices from './views/Invoices';
 import Whois from './views/Whois';
 import Transfers from './views/Transfers';
 import Support from './views/Support';
+import WalletView from './views/Wallet';
 import AdminDashboard from './views/AdminDashboard';
 import AdminUsers from './views/AdminUsers';
 import AdminSubdomains from './views/AdminSubdomains';
@@ -49,6 +50,7 @@ const App: React.FC = () => {
           <Route path="/transfers" element={<ProtectedRoute><Transfers /></ProtectedRoute>} />
           <Route path="/referrals" element={<ProtectedRoute><Referral /></ProtectedRoute>} />
           <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
+          <Route path="/wallet" element={<ProtectedRoute><WalletView /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
 

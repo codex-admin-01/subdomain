@@ -2,10 +2,10 @@
 import React, { useState } from 'react';
 import { useStore } from '../store';
 import { useNavigate } from 'react-router-dom';
-import { Search, CheckCircle, Clock, CreditCard, Sparkles, ArrowRight } from 'lucide-react';
+import { Search, CheckCircle, Clock, CreditCard, Sparkles, ArrowRight, Star, ShieldCheck } from 'lucide-react';
 
 const RegisterDomain: React.FC = () => {
-  const { mainDomains, subdomains, registerSubdomain } = useStore();
+  const { mainDomains, subdomains, registerSubdomain, reservedNames } = useStore();
   const navigate = useNavigate();
 
   const [subName, setSubName] = useState('');
@@ -14,6 +14,16 @@ const RegisterDomain: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchResult, setSearchResult] = useState<'available' | 'taken' | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+
+  const selectedMain = mainDomains.find(d => d.id === selectedDomainId);
+  
+  // Pricing Logic: Check Reserved -> Premium -> Standard
+  const reserved = reservedNames.find(rn => rn.name === subName.toLowerCase() && rn.mainDomainId === selectedDomainId);
+  const isAutoPremium = !reserved && subName.length > 0 && subName.length < (selectedMain?.premiumThreshold || 0);
+  
+  const currentMonthlyPrice = reserved 
+    ? reserved.price 
+    : (isAutoPremium ? (selectedMain?.premiumPrice || 0) : (selectedMain?.monthlyPrice || 0));
 
   const generateSuggestions = (baseName: string) => {
     const list = [
@@ -64,13 +74,11 @@ const RegisterDomain: React.FC = () => {
     setSuggestions([]);
   };
 
-  const selectedMain = mainDomains.find(d => d.id === selectedDomainId);
-
   return (
     <div className="max-w-3xl mx-auto space-y-8">
       <header className="text-center space-y-2">
         <h1 className="text-3xl font-bold text-white">Find your perfect subdomain</h1>
-        <p className="text-slate-400">Premium names on our high-authority base domains.</p>
+        <p className="text-slate-400">Exclusive names on our high-authority base domains.</p>
       </header>
 
       <div className="bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-xl space-y-8 shadow-2xl">
@@ -119,13 +127,27 @@ const RegisterDomain: React.FC = () => {
                 <div className="flex items-center gap-4">
                   <div className="bg-emerald-500 text-white p-2 rounded-full shadow-lg shadow-emerald-500/30"><CheckCircle size={24}/></div>
                   <div>
-                    <h3 className="text-xl font-bold text-white">Great news!</h3>
+                    <div className="flex items-center gap-2">
+                       <h3 className="text-xl font-bold text-white">Great news!</h3>
+                       {reserved ? (
+                         <span className="flex items-center gap-1 bg-amber-500 text-black text-[10px] font-black uppercase px-2 py-0.5 rounded shadow-lg shadow-amber-500/20">
+                           <ShieldCheck size={10} fill="currentColor" /> Reserved Elite
+                         </span>
+                       ) : isAutoPremium ? (
+                         <span className="flex items-center gap-1 bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase px-2 py-0.5 rounded border border-emerald-500/30">
+                           <Star size={10} fill="currentColor" /> Premium Name
+                         </span>
+                       ) : null}
+                    </div>
                     <p className="text-emerald-400/80">{subName}.{selectedMain?.domain} is available.</p>
                   </div>
                 </div>
                 <div className="text-center md:text-right">
                   <p className="text-slate-400 text-sm">Monthly Price</p>
-                  <p className="text-2xl font-black text-white">${selectedMain?.monthlyPrice}</p>
+                  <p className={`text-2xl font-black ${reserved ? 'text-amber-400 scale-110 origin-right' : isAutoPremium ? 'text-emerald-400' : 'text-white'}`}>
+                    ${currentMonthlyPrice.toFixed(2)}
+                  </p>
+                  {reserved && <p className="text-[9px] text-amber-500 font-black uppercase tracking-tighter mt-1">Exclusive Reservation</p>}
                 </div>
               </div>
             ) : (
@@ -189,7 +211,7 @@ const RegisterDomain: React.FC = () => {
                 >
                   <div className="text-lg font-bold">{m} Month{m > 1 ? 's' : ''}</div>
                   <div className={`text-xs ${period === m ? 'text-emerald-100' : 'text-slate-500'}`}>
-                    ${(selectedMain!.monthlyPrice * m).toFixed(2)} total
+                    ${(currentMonthlyPrice * m).toFixed(2)} total
                   </div>
                 </button>
               ))}
@@ -209,7 +231,7 @@ const RegisterDomain: React.FC = () => {
               onClick={handleRegister}
               className="w-full bg-white text-black font-black py-4 rounded-xl flex items-center justify-center gap-3 hover:bg-emerald-50 transition-all shadow-xl"
             >
-              <CreditCard size={20}/> Proceed to Checkout - ${(selectedMain!.monthlyPrice * period).toFixed(2)}
+              <CreditCard size={20}/> Proceed to Checkout - ${(currentMonthlyPrice * period).toFixed(2)}
             </button>
           </div>
         )}

@@ -4,9 +4,10 @@ import { useStore } from '../store';
 import { 
   LayoutDashboard, Globe, Link2, User, Settings, LogOut, 
   Users, ShieldCheck, CreditCard, Search, Menu, X, ChevronDown, 
-  ArrowRight, Shield, ArrowLeftRight, HelpCircle, LifeBuoy, History, ShieldAlert, Activity
+  ArrowRight, Shield, ArrowLeftRight, HelpCircle, LifeBuoy, History, ShieldAlert, Activity, Wallet
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import PromoModal from './PromoModal';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -37,6 +38,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/get-domain', label: 'Register New', icon: Globe },
     { to: '/my-domains', label: 'My Domains', icon: ShieldCheck },
+    { to: '/wallet', label: 'Wallet', icon: Wallet },
     { to: '/transfers', label: 'Transfers', icon: ArrowLeftRight, badge: pendingTransferCount > 0 ? pendingTransferCount : null },
     { to: '/whois', label: 'WHOIS Lookup', icon: Search },
     { to: '/referrals', label: 'Referrals', icon: Link2 },
@@ -61,6 +63,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-500 ${currentUser ? 'bg-[#0a0c10]' : 'bg-transparent'}`}>
+      <PromoModal />
       <nav className={`w-full sticky top-0 z-[100] border-b border-white/5 py-3 px-4 lg:px-8 flex justify-center backdrop-blur-xl ${currentUser ? 'bg-[#0a0c10]/80' : 'bg-[#0a0c10]/40'}`}>
         <div className="max-w-7xl w-full flex justify-between items-center">
           <div className="flex items-center gap-4">

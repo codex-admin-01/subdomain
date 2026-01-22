@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useStore } from '../store';
-import { Shield, Plus, Key, Mail, DollarSign } from 'lucide-react';
+import { Shield, Plus, Key, Mail, DollarSign, Zap, Star } from 'lucide-react';
 
 const AdminDomains: React.FC = () => {
   const { mainDomains, addMainDomain } = useStore();
@@ -12,6 +12,8 @@ const AdminDomains: React.FC = () => {
     zoneId: '',
     apiKey: '',
     monthlyPrice: 0,
+    premiumThreshold: 4,
+    premiumPrice: 0,
     status: 'active' as const
   });
 
@@ -19,7 +21,7 @@ const AdminDomains: React.FC = () => {
     e.preventDefault();
     addMainDomain(newDomain);
     setShowAdd(false);
-    setNewDomain({ domain: '', cloudflareEmail: '', zoneId: '', apiKey: '', monthlyPrice: 0, status: 'active' });
+    setNewDomain({ domain: '', cloudflareEmail: '', zoneId: '', apiKey: '', monthlyPrice: 0, premiumThreshold: 4, premiumPrice: 0, status: 'active' });
   };
 
   return (
@@ -49,14 +51,37 @@ const AdminDomains: React.FC = () => {
               className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             />
           </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-slate-400 text-xs font-bold uppercase">Standard Price ($)</label>
+              <input 
+                required
+                type="number"
+                step="0.01"
+                value={newDomain.monthlyPrice}
+                onChange={e => setNewDomain({...newDomain, monthlyPrice: parseFloat(e.target.value)})}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-slate-400 text-xs font-bold uppercase">Prem. Price ($)</label>
+              <input 
+                required
+                type="number"
+                step="0.01"
+                value={newDomain.premiumPrice}
+                onChange={e => setNewDomain({...newDomain, premiumPrice: parseFloat(e.target.value)})}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              />
+            </div>
+          </div>
           <div className="space-y-2">
-            <label className="text-slate-400 text-xs font-bold uppercase">Monthly Price ($)</label>
+            <label className="text-slate-400 text-xs font-bold uppercase">Premium Threshold (Length)</label>
             <input 
               required
               type="number"
-              step="0.01"
-              value={newDomain.monthlyPrice}
-              onChange={e => setNewDomain({...newDomain, monthlyPrice: parseFloat(e.target.value)})}
+              value={newDomain.premiumThreshold}
+              onChange={e => setNewDomain({...newDomain, premiumThreshold: parseInt(e.target.value)})}
               className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             />
           </div>
@@ -78,7 +103,7 @@ const AdminDomains: React.FC = () => {
               className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             />
           </div>
-          <div className="md:col-span-2 space-y-2">
+          <div className="space-y-2">
             <label className="text-slate-400 text-xs font-bold uppercase">Global API Key</label>
             <input 
               required
@@ -108,11 +133,25 @@ const AdminDomains: React.FC = () => {
                   }`}>{d.status}</span>
                 </div>
               </div>
-              <p className="text-2xl font-black text-white">${d.monthlyPrice.toFixed(2)}<span className="text-xs font-medium text-slate-500">/mo</span></p>
+              <div className="text-right">
+                <div className="flex items-baseline justify-end gap-1">
+                  <span className="text-2xl font-black text-white">${d.monthlyPrice.toFixed(2)}</span>
+                  <span className="text-[10px] font-medium text-slate-500">STD/mo</span>
+                </div>
+                <div className="flex items-baseline justify-end gap-1 text-amber-400">
+                  <span className="text-lg font-black">${d.premiumPrice.toFixed(2)}</span>
+                  <span className="text-[10px] font-medium">PREM/mo</span>
+                </div>
+              </div>
             </div>
             
             <div className="grid grid-cols-1 gap-2 pt-4 border-t border-white/5">
-              <div className="flex items-center gap-2 text-xs text-slate-400"><Mail size={12}/> {d.cloudflareEmail}</div>
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2 text-slate-400"><Mail size={12}/> {d.cloudflareEmail}</div>
+                <div className="flex items-center gap-1.5 text-amber-500/80 font-bold">
+                  <Star size={10} /> Short Names ({d.premiumThreshold} chars)
+                </div>
+              </div>
               <div className="flex items-center gap-2 text-xs text-slate-400 font-mono"><Key size={12}/> {d.zoneId}</div>
             </div>
           </div>

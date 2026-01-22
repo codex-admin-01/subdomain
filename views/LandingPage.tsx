@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { useNavigate, Link } from 'react-router-dom';
-import { Globe, Shield, Zap, Clock, Search, ArrowRight, Activity, ShieldCheck, Sparkles } from 'lucide-react';
+import { Globe, Shield, Zap, Clock, Search, ArrowRight, Activity, ShieldCheck, Sparkles, Check, Star } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
   const { login, settings, subdomains, currentUser, siteStatus } = useStore();
@@ -13,7 +13,6 @@ const LandingPage: React.FC = () => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (login(email)) {
-      // The store update will trigger App.tsx Navigate, but we can also help
       navigate(currentUser?.role === 'ADMIN' ? '/admin' : '/dashboard');
     } else {
       setError('Invalid email or account suspended.');
@@ -88,6 +87,68 @@ const LandingPage: React.FC = () => {
              <div className="flex items-center gap-2 font-black italic text-xl">Google</div>
           </div>
         </header>
+
+        {/* Pricing Section */}
+        <section className="space-y-16 py-12">
+          <div className="space-y-4">
+            <h2 className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Simple Transparent Pricing</h2>
+            <h3 className="text-5xl font-black text-white">Choose Your Plan</h3>
+            <p className="text-slate-500 text-lg max-w-2xl mx-auto">Scale from individual blogs to enterprise-grade infrastructure with our flexible subdomain tiers.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {settings.pricingPlans.map((plan, idx) => (
+              <div 
+                key={plan.id} 
+                className={`relative group flex flex-col p-10 rounded-[3rem] border backdrop-blur-xl transition-all duration-500 ${
+                  plan.popular 
+                    ? 'bg-emerald-500/10 border-emerald-500/30 ring-1 ring-emerald-500/20 scale-105 z-20 shadow-[0_30px_60px_-15px_rgba(16,185,129,0.2)]' 
+                    : 'bg-white/5 border-white/10 hover:bg-white/[0.08] hover:border-white/20'
+                }`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2">
+                    <Star size={10} fill="currentColor" /> Most Popular
+                  </div>
+                )}
+
+                <div className="mb-8 text-left">
+                  <h4 className="text-xl font-bold text-white mb-2">{plan.name}</h4>
+                  <p className="text-slate-500 text-sm leading-relaxed">{plan.desc}</p>
+                </div>
+
+                <div className="mb-10 text-left">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-5xl font-black text-white">{plan.price !== 'Custom' ? `$${plan.price}` : plan.price}</span>
+                    {plan.price !== 'Custom' && <span className="text-slate-500 font-bold">/mo</span>}
+                  </div>
+                </div>
+
+                <div className="flex-1 space-y-4 mb-10">
+                  {plan.features.map((feature, fidx) => (
+                    <div key={fidx} className="flex items-start gap-3 text-left">
+                      <div className={`mt-1 p-0.5 rounded-full bg-${plan.color}-500/20 text-${plan.color}-400`}>
+                        <Check size={12} />
+                      </div>
+                      <span className="text-sm text-slate-400 font-medium">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button 
+                  onClick={scrollToLogin}
+                  className={`w-full py-4 rounded-2xl font-black transition-all flex items-center justify-center gap-2 ${
+                    plan.popular 
+                      ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-xl shadow-emerald-500/20' 
+                      : 'bg-white/10 text-white hover:bg-white/20 border border-white/10'
+                  }`}
+                >
+                  Select {plan.name} <ArrowRight size={18} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
 
         {/* Feature Highlights */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-8 py-20 border-y border-white/5">
