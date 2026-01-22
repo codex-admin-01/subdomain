@@ -11,11 +11,17 @@ import Referral from './views/Referral';
 import Profile from './views/Profile';
 import Invoices from './views/Invoices';
 import Whois from './views/Whois';
+import Transfers from './views/Transfers';
+import Support from './views/Support';
 import AdminDashboard from './views/AdminDashboard';
 import AdminUsers from './views/AdminUsers';
 import AdminSubdomains from './views/AdminSubdomains';
 import AdminDomains from './views/AdminDomains';
 import AdminSettings from './views/AdminSettings';
+import AdminSupport from './views/AdminSupport';
+import AdminAuditLogs from './views/AdminAuditLogs';
+import AdminAbuse from './views/AdminAbuse';
+import StatusPage from './views/StatusPage';
 
 const ProtectedRoute = ({ children, adminOnly = false }: { children?: React.ReactNode, adminOnly?: boolean }) => {
   const { currentUser } = useStore();
@@ -34,14 +40,17 @@ const App: React.FC = () => {
           {/* Public Routes */}
           <Route path="/" element={currentUser ? <Navigate to={currentUser.role === 'ADMIN' ? "/admin" : "/dashboard"} /> : <LandingPage />} />
           <Route path="/whois" element={<Whois />} />
+          <Route path="/status" element={<StatusPage />} />
           
           {/* User Routes */}
           <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
           <Route path="/get-domain" element={<ProtectedRoute><RegisterDomain /></ProtectedRoute>} />
           <Route path="/my-domains" element={<ProtectedRoute><UserDomains /></ProtectedRoute>} />
+          <Route path="/transfers" element={<ProtectedRoute><Transfers /></ProtectedRoute>} />
           <Route path="/referrals" element={<ProtectedRoute><Referral /></ProtectedRoute>} />
           <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
 
           {/* Admin Routes */}
           <Route path="/admin" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
@@ -49,6 +58,9 @@ const App: React.FC = () => {
           <Route path="/admin/subdomains" element={<ProtectedRoute adminOnly><AdminSubdomains /></ProtectedRoute>} />
           <Route path="/admin/domains" element={<ProtectedRoute adminOnly><AdminDomains /></ProtectedRoute>} />
           <Route path="/admin/settings" element={<ProtectedRoute adminOnly><AdminSettings /></ProtectedRoute>} />
+          <Route path="/admin/support" element={<ProtectedRoute adminOnly><AdminSupport /></ProtectedRoute>} />
+          <Route path="/admin/audit" element={<ProtectedRoute adminOnly><AdminAuditLogs /></ProtectedRoute>} />
+          <Route path="/admin/abuse" element={<ProtectedRoute adminOnly><AdminAbuse /></ProtectedRoute>} />
 
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../store';
 import { useNavigate } from 'react-router-dom';
-import { Search, CheckCircle, Clock, CreditCard } from 'lucide-react';
+import { Search, CheckCircle, Clock, CreditCard, Sparkles, ArrowRight } from 'lucide-react';
 
 const RegisterDomain: React.FC = () => {
   const { mainDomains, subdomains, registerSubdomain } = useStore();
@@ -13,11 +13,26 @@ const RegisterDomain: React.FC = () => {
   const [period, setPeriod] = useState(1);
   const [isSearching, setIsSearching] = useState(false);
   const [searchResult, setSearchResult] = useState<'available' | 'taken' | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+
+  const generateSuggestions = (baseName: string) => {
+    const list = [
+      `${baseName}-app`,
+      `${baseName}-site`,
+      `get${baseName}`,
+      `my${baseName}`,
+      `${baseName}${Math.floor(Math.random() * 99)}`,
+      `${baseName}-official`
+    ];
+    // Filter out already taken suggestions (simulated check)
+    return list.filter(name => !subdomains.some(s => s.name === name)).slice(0, 4);
+  };
 
   const handleSearch = () => {
     if (!subName) return;
     setIsSearching(true);
     setSearchResult(null);
+    setSuggestions([]);
 
     // Simulate search
     setTimeout(() => {
@@ -25,9 +40,14 @@ const RegisterDomain: React.FC = () => {
       const fullDomain = `${subName}.${selectedMain?.domain}`;
       const exists = subdomains.some(s => s.fullDomain === fullDomain);
       
-      setSearchResult(exists ? 'taken' : 'available');
+      if (exists) {
+        setSearchResult('taken');
+        setSuggestions(generateSuggestions(subName));
+      } else {
+        setSearchResult('available');
+      }
       setIsSearching(false);
-    }, 800);
+    }, 600);
   };
 
   const handleRegister = () => {
@@ -36,6 +56,12 @@ const RegisterDomain: React.FC = () => {
     if (invoice) {
       navigate('/invoices');
     }
+  };
+
+  const selectSuggestion = (name: string) => {
+    setSubName(name);
+    setSearchResult(null);
+    setSuggestions([]);
   };
 
   const selectedMain = mainDomains.find(d => d.id === selectedDomainId);
@@ -85,13 +111,13 @@ const RegisterDomain: React.FC = () => {
 
         {/* Search Results */}
         {searchResult && (
-          <div className={`p-6 rounded-2xl border ${
+          <div className={`p-6 rounded-2xl border animate-in fade-in slide-in-from-top-4 ${
             searchResult === 'available' ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-rose-500/10 border-rose-500/20'
           }`}>
             {searchResult === 'available' ? (
               <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="flex items-center gap-4">
-                  <div className="bg-emerald-500 text-white p-2 rounded-full"><CheckCircle size={24}/></div>
+                  <div className="bg-emerald-500 text-white p-2 rounded-full shadow-lg shadow-emerald-500/30"><CheckCircle size={24}/></div>
                   <div>
                     <h3 className="text-xl font-bold text-white">Great news!</h3>
                     <p className="text-emerald-400/80">{subName}.{selectedMain?.domain} is available.</p>
@@ -103,11 +129,40 @@ const RegisterDomain: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-4">
-                <div className="bg-rose-500 text-white p-2 rounded-full"><Clock size={24}/></div>
-                <div>
-                  <h3 className="text-xl font-bold text-white">Already taken</h3>
-                  <p className="text-rose-400/80">Try adding a number or choosing a different base domain.</p>
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="bg-rose-500 text-white p-2 rounded-full"><Clock size={24}/></div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">Already taken</h3>
+                    <p className="text-rose-400/80">That name is currently registered. Check out these alternatives:</p>
+                  </div>
+                </div>
+
+                {/* Intelligent Suggestions */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t border-white/5">
+                  {suggestions.map((suggestion, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => selectSuggestion(suggestion)}
+                      className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all text-left group"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Sparkles size={14} className="text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <span className="text-white font-mono text-sm">{suggestion}.{selectedMain?.domain}</span>
+                      </div>
+                      <ArrowRight size={14} className="text-slate-600 group-hover:text-emerald-400 transition-colors" />
+                    </button>
+                  ))}
+                  {mainDomains.filter(d => d.id !== selectedDomainId).map((d, idx) => (
+                    <button
+                      key={`alt-${idx}`}
+                      onClick={() => { setSelectedDomainId(d.id); handleSearch(); }}
+                      className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all text-left group"
+                    >
+                      <span className="text-white font-mono text-sm">{subName}.{d.domain}</span>
+                      <Sparkles size={14} className="text-cyan-400" />
+                    </button>
+                  ))}
                 </div>
               </div>
             )}

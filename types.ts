@@ -67,9 +67,75 @@ export interface Coupon {
   usageCount: number;
 }
 
+export interface TransferRequest {
+  id: string;
+  subdomainId: string;
+  senderId: string;
+  receiverId?: string;
+  secretKey: string;
+  status: 'pending' | 'requested' | 'completed' | 'cancelled';
+  createdAt: string;
+}
+
+export interface AuditLog {
+  id: string;
+  userId: string;
+  userName: string;
+  action: string;
+  targetId?: string;
+  details: string;
+  createdAt: string;
+  type: 'info' | 'warning' | 'critical';
+}
+
+export interface ForbiddenKeyword {
+  id: string;
+  word: string;
+  addedAt: string;
+}
+
+export interface TicketMessage {
+  id: string;
+  senderId: string;
+  text: string;
+  createdAt: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  userId: string;
+  subject: string;
+  category: 'Billing' | 'Technical' | 'Transfer' | 'Other';
+  status: 'open' | 'replied' | 'closed';
+  messages: TicketMessage[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+  category: string;
+}
+
 export interface AppSettings {
   websiteName: string;
   websiteLogo: string;
   referralCommission: number; // Percentage
   couponsEnabled: boolean;
+}
+
+export interface SiteStatus {
+  service: string;
+  status: 'operational' | 'degraded' | 'outage';
+  uptime: string;
+}
+
+export interface RevenueStats {
+  mrr: number;
+  dailyRevenue: number;
+  monthlyRevenue: number;
+  churnRate: number;
+  expiringSoon: number;
 }

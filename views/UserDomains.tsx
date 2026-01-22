@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { useStore } from '../store';
-import { Settings, Save, AlertCircle } from 'lucide-react';
+import { Settings, Save, AlertCircle, ArrowLeftRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const UserDomains: React.FC = () => {
   const { currentUser, subdomains, updateSubdomainIP } = useStore();
@@ -23,9 +24,14 @@ const UserDomains: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl font-bold text-white">Manage My Domains</h1>
-        <p className="text-slate-400">Update your DNS records and monitor uptime.</p>
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Manage My Domains</h1>
+          <p className="text-slate-400">Update your DNS records and monitor uptime.</p>
+        </div>
+        <Link to="/transfers" className="bg-white/5 border border-white/10 hover:bg-white/10 text-white px-6 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2">
+          <ArrowLeftRight size={18} /> Transfer Management
+        </Link>
       </header>
 
       <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-md">
@@ -37,7 +43,7 @@ const UserDomains: React.FC = () => {
                 <th className="px-6 py-4 font-semibold">Registration/Expiry</th>
                 <th className="px-6 py-4 font-semibold">Hosting IP (A Record)</th>
                 <th className="px-6 py-4 font-semibold">Status</th>
-                <th className="px-6 py-4 font-semibold">Actions</th>
+                <th className="px-6 py-4 font-semibold text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -70,20 +76,31 @@ const UserDomains: React.FC = () => {
                       {sub.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    {editingId === sub.id ? (
-                      <button onClick={saveIP} className="text-emerald-400 hover:text-emerald-300 transition-colors">
-                        <Save size={18} />
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={() => startEditing(sub.id, sub.ip)}
-                        disabled={sub.status !== 'active'}
-                        className="text-slate-400 hover:text-white transition-colors disabled:opacity-30"
-                      >
-                        <Settings size={18} />
-                      </button>
-                    )}
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex justify-end gap-3">
+                      {sub.status === 'active' && (
+                        <Link 
+                          to={`/transfers?subdomainId=${sub.id}`}
+                          title="Transfer Domain"
+                          className="text-slate-400 hover:text-emerald-400 transition-colors"
+                        >
+                          <ArrowLeftRight size={18} />
+                        </Link>
+                      )}
+                      {editingId === sub.id ? (
+                        <button onClick={saveIP} className="text-emerald-400 hover:text-emerald-300 transition-colors">
+                          <Save size={18} />
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => startEditing(sub.id, sub.ip)}
+                          disabled={sub.status !== 'active'}
+                          className="text-slate-400 hover:text-white transition-colors disabled:opacity-30"
+                        >
+                          <Settings size={18} />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
