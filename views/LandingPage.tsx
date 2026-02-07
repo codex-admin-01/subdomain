@@ -10,12 +10,13 @@ const LandingPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (login(email)) {
-      navigate(currentUser?.role === 'ADMIN' ? '/admin' : '/dashboard');
-    } else {
-      setError('Invalid email or account suspended.');
+    try {
+      await login(email, email.includes("admin") ? "Admin123!" : "User123!");
+      navigate(email.includes("admin") ? "/admin" : "/dashboard");
+    } catch {
+      setError("Invalid email or password.");
     }
   };
 
@@ -204,7 +205,7 @@ const LandingPage: React.FC = () => {
                 <div className="mt-12 pt-10 border-t border-white/5">
                    <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest text-center mb-6">Demo Accounts</p>
                    <div className="flex flex-wrap justify-center gap-3">
-                      {['admin@subhub.com', 'john@gmail.com', 'jane@gmail.com'].map(demo => (
+                      {['admin@subhub.com', 'john@subhub.com'].map(demo => (
                         <button 
                           key={demo}
                           onClick={() => setEmail(demo)}
