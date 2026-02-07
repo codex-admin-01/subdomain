@@ -1,0 +1,236 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role { ADMIN USER }
+enum UserStatus { ACTIVE DISABLED }
+enum DomainStatus { ACTIVE INACTIVE SUSPENDED }
+enum SubdomainStatus { ACTIVE PENDING SUSPENDED EXPIRED LOCKED }
+enum TransactionType { DEPOSIT WITHDRAW TRANSFER CREDIT DEBIT }
+enum TransactionStatus { PENDING COMPLETED FAILED CANCELLED }
+enum InvoiceStatus { UNPAID PAID VOID }
+enum TicketStatus { OPEN REPLIED CLOSED }
+enum TicketPriority { LOW MEDIUM HIGH URGENT }
+enum AbuseStatus { OPEN INVESTIGATING RESOLVED REJECTED }
+enum IncidentSeverity { LOW MEDIUM HIGH CRITICAL }
+enum IncidentStatus { OPEN RESOLVED }
+enum SubscriptionStatus { ACTIVE CANCELLED EXPIRED }
+
+model User {
+  id                String   @id @default(cuid())
+  name              String
+  email             String   @unique
+  phone             String?
+  passwordHash      String
+  role              Role     @default(USER)
+  status            UserStatus @default(ACTIVE)
+  referralCode      String   @unique
+  referredByCode    String?
+  lowBalanceThreshold Float  @default(5)
+  autoTransferCommission Boolean @default(true)
+  pendingCommissions Float @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  domains           Domain[]
+  wallet            Wallet?
+  invoices          Invoice[]
+  supportTickets    SupportTicket[]
+  ticketReplies     TicketReply[]
+  auditLogs         AuditLog[]
+  abuseReports      AbuseReport[] @relation("reporter")
+  referralsMade     Referral[] @relation("referrer")
+  referralsReceived Referral[] @relation("referee")
+  subscriptions     Subscription[]
+}
+
+model Domain {
+  id          String @id @default(cuid())
+  name        String @unique
+  status      DomainStatus @default(ACTIVE)
+  ownerId     String?
+  monthlyPrice Float @default(2.99)
+  premiumThreshold Int @default(4)
+  premiumPrice Float @default(9.99)
+  createdAt   DateTime @default(now())
+
+  owner       User? @relation(fields: [ownerId], references: [id])
+  subdomains  Subdomain[]
+  abuseReports AbuseReport[]
+}
+
+model Subdomain {
+  id          String @id @default(cuid())
+  name        String
+  fullDomain  String @unique
+  target      String @default("0.0.0.0")
+  status      SubdomainStatus @default(PENDING)
+  domainId    String
+  ownerId     String
+  period      Int @default(1)
+  autoRenew   Boolean @default(true)
+  createdAt   DateTime @default(now())
+  expiryDate  DateTime
+
+  domain      Domain @relation(fields: [domainId], references: [id])
+  owner       User   @relation(fields: [ownerId], references: [id])
+  abuseReports AbuseReport[]
+}
+
+model Wallet {
+  id         String @id @default(cuid())
+  userId     String @unique
+  balance    Float @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user       User @relation(fields: [userId], references: [id])
+  transactions Transaction[]
+}
+
+model Transaction {
+  id          String @id @default(cuid())
+  walletId    String
+  amount      Float
+  type        TransactionType
+  status      TransactionStatus @default(COMPLETED)
+  reference   String?
+  createdAt   DateTime @default(now())
+
+  wallet      Wallet @relation(fields: [walletId], references: [id])
+}
+
+model Invoice {
+  id          String @id @default(cuid())
+  userId      String
+  amount      Float
+  status      InvoiceStatus @default(UNPAID)
+  period      String
+  pdfUrl      String?
+  createdAt   DateTime @default(now())
+
+  user        User @relation(fields: [userId], references: [id])
+}
+
+model SupportTicket {
+  id          String @id @default(cuid())
+  userId      String
+  subject     String
+  message     String
+  status      TicketStatus @default(OPEN)
+  priority    TicketPriority @default(MEDIUM)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User @relation(fields: [userId], references: [id])
+  replies     TicketReply[]
+}
+
+model TicketReply {
+  id          String @id @default(cuid())
+  ticketId    String
+  authorId    String
+  message     String
+  isInternal  Boolean @default(false)
+  createdAt   DateTime @default(now())
+
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id])
+  author      User @relation(fields: [authorId], references: [id])
+}
+
+model AuditLog {
+  id          String @id @default(cuid())
+  actorId     String
+  action      String
+  entityType  String
+  entityId    String?
+  ip          String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  actor       User @relation(fields: [actorId], references: [id])
+}
+
+model AbuseReport {
+  id            String @id @default(cuid())
+  reporterId    String?
+  domainId      String?
+  subdomainId   String?
+  reason        String
+  status        AbuseStatus @default(OPEN)
+  createdAt     DateTime @default(now())
+
+  reporter      User? @relation("reporter", fields: [reporterId], references: [id])
+  domain        Domain? @relation(fields: [domainId], references: [id])
+  subdomain     Subdomain? @relation(fields: [subdomainId], references: [id])
+}
+
+model Referral {
+  id          String @id @default(cuid())
+  referrerId  String
+  refereeId   String
+  code        String
+  rewards     Float @default(0)
+  createdAt   DateTime @default(now())
+
+  referrer    User @relation("referrer", fields: [referrerId], references: [id])
+  referee     User @relation("referee", fields: [refereeId], references: [id])
+}
+
+model AppSetting {
+  key        String @id
+  value      String
+  updatedAt  DateTime @updatedAt
+}
+
+model StatusIncident {
+  id          String @id @default(cuid())
+  title       String
+  message     String
+  severity    IncidentSeverity
+  status      IncidentStatus @default(OPEN)
+  createdAt   DateTime @default(now())
+  resolvedAt  DateTime?
+}
+
+model WhoisLookup {
+  id          String @id @default(cuid())
+  query       String
+  resultJson  Json
+  createdAt   DateTime @default(now())
+}
+
+model Plan {
+  id          String @id @default(cuid())
+  name        String
+  price       Float
+  description String
+  createdAt   DateTime @default(now())
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id          String @id @default(cuid())
+  userId      String
+  planId      String
+  status      SubscriptionStatus @default(ACTIVE)
+  renewAt     DateTime
+  createdAt   DateTime @default(now())
+
+  user        User @relation(fields: [userId], references: [id])
+  plan        Plan @relation(fields: [planId], references: [id])
+}
+
+model RefreshToken {
+  id          String @id @default(cuid())
+  token       String @unique
+  userId      String
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  user        User @relation(fields: [userId], references: [id])
+}

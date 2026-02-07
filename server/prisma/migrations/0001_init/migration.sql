@@ -1,0 +1,2 @@
+-- Initial migration placeholder.
+-- Run `npm --prefix server run prisma:migrate -- --name init` to generate engine-specific SQL.
